@@ -627,27 +627,40 @@ def render_sidebar(datos: dict) -> dict:
     """
     with st.sidebar:
         # --- NUEVO BLOQUE DEL LOGO ---
-        # 1. Creamos 3 columnas invisibles para centrar la imagen (1, 2, 1 son las proporciones)
+        # --- 1. ESTILO CSS PARA ELIMINAR ESPACIOS GLOBALES ARRIBA ---
+        st.markdown("""
+            <style>
+                /* Quita el espacio en blanco superior de la barra lateral */
+                [data-testid="stSidebarUserContent"] {
+                    padding-top: 20px !important;
+                }
+                /* Reduce el espacio entre elementos de la barra lateral */
+                [data-testid="stSidebar"] .stVerticalBlock {
+                    gap: 0rem !important;
+                }
+            </style>
+        """, unsafe_allow_html=True)
+
+        # --- 2. BLOQUE DEL LOGO CENTRADO ---
         col_izq, col_centro, col_der = st.columns([1, 2, 1])
-        
         with col_centro:
             try:
-                # ACÁ ABAJO: Podés cambiar el '120' por un número más grande o más chico para ajustar el tamaño exacto
-                st.image("Subte_logo.png", width=120)
+                # Bajamos un poco el ancho a 100 para que sea más sutil si el espacio es poco
+                st.image("Subte_logo.png", width=100)
             except Exception:
-                st.markdown("<h3 style='color: white; text-align: center;'>BA Subte</h3>", unsafe_allow_html=True)
+                st.markdown("<h4 style='color: white; text-align: center; margin:0;'>Subte BA</h4>", unsafe_allow_html=True)
 
-        # 2. Agregamos 'text-align: center;' para alinear el texto perfectamente debajo del logo
+        # --- 3. TEXTO CON MÁRGENES MÍNIMOS ---
         st.markdown("""
-        <div style='padding: 5px 0 20px 0; text-align: center;'>
-            <div style='font-size: 0.75rem; color: #8B949E;
-                        font-family: IBM Plex Mono; letter-spacing:0.08em;'>
+        <div style='margin-top: -10px; padding: 0px 0 10px 0; text-align: center;'>
+            <div style='font-size: 0.70rem; color: #8B949E;
+                        font-family: IBM Plex Mono; letter-spacing:0.08em; line-height: 1;'>
                 TABLERO OPERATIVO
             </div>
         </div>
         """, unsafe_allow_html=True)
-
-        st.markdown("---")
+        
+        st.markdown("---") # Una línea divisoria fina para separar de los filtros
 
         # ── Selector de Vista ──
         vista = st.radio(
