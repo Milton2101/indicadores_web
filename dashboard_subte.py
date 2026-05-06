@@ -1060,7 +1060,7 @@ def render_detalle_frecuencia(df, filtros):
     # ── 3. Tabla de Datos Crudos ──
     st.markdown("### 📋 Detalle de Despachos")
     columnas_mostrar = {
-        "hora_solo": "Hora", "turno_en_la_hora": "Turno",
+        "linea":"linea","sentido": "Sentido","hora_solo": "Hora", "turno_en_la_hora": "Turno",
         "formacion_programada": "Chapa Prog.", "hora_programada": "Hora Prog.",
         "intervalo_franja_p": "Intervalo Prog.", "formacion_real": "Chapa Real",
         "hora_real": "Hora Real", "intervalo_franja_e": "Intervalo Real",
