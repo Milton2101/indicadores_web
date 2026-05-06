@@ -1024,27 +1024,81 @@ def render_detalle_frecuencia(df, filtros):
     # ── 2. Gráfico de Tira de Intervalos (Fluctuación) ──
     fig = go.Figure()
     
+    # 2.A - Procesar y dibujar línea de Programado
     if "intervalo_segundos_franja_p" in df and "hora_programada" in df:
+        # Filtramos nulos y ordenamos cronológicamente
+        df_prog = df.dropna(subset=["hora_programada", "intervalo_segundos_franja_p"]).sort_values("hora_programada")
+        
         fig.add_trace(go.Scatter(
-            x=df["hora_programada"].astype(str),
-            y=df["intervalo_segundos_franja_p"] / 60,
+            # Convertimos a datetime para que Plotly entienda que es una escala de tiempo continua
+            x=pd.to_datetime(df_prog["hora_programada"].astype(str), format='%H:%M:%S', errors='coerce'),
+            y=df_prog["intervalo_segundos_franja_p"] / 60,
             mode='lines+markers', name='Prog. (Minutos)',
             line=dict(color='#A0AAB2', width=2, dash='dash'),
-            marker=dict(size=6, symbol='circle')
+            marker=dict(size=6, symbol='circle'),
+            hovertemplate="Hora Prog: %{x|%H:%M:%S}<br>Intervalo: %{y:.1f} min<extra></extra>"
         ))
         
+    # 2.B - Procesar y dibujar línea de Real
     if "intervalo_segundos_franja_e" in df and "hora_real" in df:
+        # Filtramos nulos y ordenamos cronológicamente
+        df_real = df.dropna(subset=["hora_real", "intervalo_segundos_franja_e"]).sort_values("hora_real")
+        
         fig.add_trace(go.Scatter(
-            x=df["hora_real"].astype(str),
-            y=df["intervalo_segundos_franja_e"] / 60,
+            x=pd.to_datetime(df_real["hora_real"].astype(str), format='%H:%M:%S', errors='coerce'),
+            y=df_real["intervalo_segundos_franja_e"] / 60,
             mode='lines+markers', name='Real (Minutos)',
             line=dict(color='#0078D7', width=3),
-            marker=dict(size=8, symbol='diamond')
+            marker=dict(size=8, symbol='diamond'),
+            hovertemplate="Hora Real: %{x|%H:%M:%S}<br>Intervalo: %{y:.1f} min<extra></extra>"
         ))
         
     fig.update_layout(
         title="Evolución del Intervalo entre Trenes (Tira de Despachos)",
-        xaxis_title="Hora de Despacho", yaxis_title="Intervalo (Minutos)",
+        xaxis_title="Hora de Despacho", 
+        yaxis_title="Intervalo (Minutos)",
+        xaxis=dict(tickformat="%H:%M"), # Forzamos a que el eje X se vea como reloj
+        template="plotly_white", hovermode="x unified",
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)# ── 2. Gráfico de Tira de Intervalos (Fluctuación) ──
+    fig = go.Figure()
+    
+    # 2.A - Procesar y dibujar línea de Programado
+    if "intervalo_segundos_franja_p" in df and "hora_programada" in df:
+        # Filtramos nulos y ordenamos cronológicamente
+        df_prog = df.dropna(subset=["hora_programada", "intervalo_segundos_franja_p"]).sort_values("hora_programada")
+        
+        fig.add_trace(go.Scatter(
+            # Convertimos a datetime para que Plotly entienda que es una escala de tiempo continua
+            x=pd.to_datetime(df_prog["hora_programada"].astype(str), format='%H:%M:%S', errors='coerce'),
+            y=df_prog["intervalo_segundos_franja_p"] / 60,
+            mode='lines+markers', name='Prog. (Minutos)',
+            line=dict(color='#A0AAB2', width=2, dash='dash'),
+            marker=dict(size=6, symbol='circle'),
+            hovertemplate="Hora Prog: %{x|%H:%M:%S}<br>Intervalo: %{y:.1f} min<extra></extra>"
+        ))
+        
+    # 2.B - Procesar y dibujar línea de Real
+    if "intervalo_segundos_franja_e" in df and "hora_real" in df:
+        # Filtramos nulos y ordenamos cronológicamente
+        df_real = df.dropna(subset=["hora_real", "intervalo_segundos_franja_e"]).sort_values("hora_real")
+        
+        fig.add_trace(go.Scatter(
+            x=pd.to_datetime(df_real["hora_real"].astype(str), format='%H:%M:%S', errors='coerce'),
+            y=df_real["intervalo_segundos_franja_e"] / 60,
+            mode='lines+markers', name='Real (Minutos)',
+            line=dict(color='#0078D7', width=3),
+            marker=dict(size=8, symbol='diamond'),
+            hovertemplate="Hora Real: %{x|%H:%M:%S}<br>Intervalo: %{y:.1f} min<extra></extra>"
+        ))
+        
+    fig.update_layout(
+        title="Evolución del Intervalo entre Trenes (Tira de Despachos)",
+        xaxis_title="Hora de Despacho", 
+        yaxis_title="Intervalo (Minutos)",
+        xaxis=dict(tickformat="%H:%M"), # Forzamos a que el eje X se vea como reloj
         template="plotly_white", hovermode="x unified",
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
     )
