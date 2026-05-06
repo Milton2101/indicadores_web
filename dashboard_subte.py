@@ -1103,7 +1103,7 @@ def render_detalle_frecuencia(df, filtros):
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
     )
     
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, key="grafico_tira_frecuencias_unico")
     
     # ── 3. Tabla de Datos Crudos ──
     st.markdown("### 📋 Detalle de Despachos")
