@@ -1065,6 +1065,34 @@ def render_detalle_frecuencia(df, filtros):
     df_tabla = df[cols_existentes].copy()
     df_tabla.rename(columns=columnas_mostrar, inplace=True)
     
+    # --- FUNCIONES DE FORMATEO (HH:MM:SS) ---
+    def formatear_segundos(segs):
+        """Convierte una cantidad de segundos numéricos a formato 00:00:00"""
+        if pd.isna(segs): return ""
+        s = int(segs)
+        return f"{s // 3600:02d}:{(s % 3600) // 60:02d}:{s % 60:02d}"
+
+    def formatear_intervalo(val):
+        """Limpia el formato Timedelta de Pandas para mostrar solo 00:00:00"""
+        if pd.isna(val): return ""
+        # Si es un objeto Timedelta nativo de Pandas
+        if isinstance(val, pd.Timedelta):
+            s = int(val.total_seconds())
+            return f"{s // 3600:02d}:{(s % 3600) // 60:02d}:{s % 60:02d}"
+        # Si llega como texto crudo (ej: '0 days 00:04:30')
+        return str(val)[-8:] 
+    # ----------------------------------------
+
+    # Aplicamos el formato de HH:MM:SS a las columnas si existen
+    if "Prom. del Bloque" in df_tabla.columns:
+        df_tabla["Prom. del Bloque"] = df_tabla["Prom. del Bloque"].apply(formatear_segundos)
+
+    if "Intervalo Prog." in df_tabla.columns:
+        df_tabla["Intervalo Prog."] = df_tabla["Intervalo Prog."].apply(formatear_intervalo)
+
+    if "Intervalo Real" in df_tabla.columns:
+        df_tabla["Intervalo Real"] = df_tabla["Intervalo Real"].apply(formatear_intervalo)
+    
     st.dataframe(df_tabla, use_container_width=True, hide_index=True)
 
 
