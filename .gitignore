@@ -1,0 +1,13 @@
+# Entorno virtual (muy pesado)
+venv/
+
+# Configuración y secretos (seguridad)
+.streamlit/
+
+# Archivos temporales de Python
+__pycache__/
+*.pyc
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
