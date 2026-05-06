@@ -633,7 +633,7 @@ def render_sidebar(datos: dict) -> dict:
         with col_centro:
             try:
                 # ACÁ ABAJO: Podés cambiar el '120' por un número más grande o más chico para ajustar el tamaño exacto
-                st.image("logo_subte.png", width=120)
+                st.image("Subte_logo.png", width=120)
             except Exception:
                 st.markdown("<h3 style='color: white; text-align: center;'>BA Subte</h3>", unsafe_allow_html=True)
 
