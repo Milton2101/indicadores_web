@@ -627,15 +627,19 @@ def render_sidebar(datos: dict) -> dict:
     """
     with st.sidebar:
         # --- NUEVO BLOQUE DEL LOGO ---
-        try:
-            # ACÁ ABAJO: Cambiá "logo_subte.png" por el nombre exacto de tu imagen
-            st.image("Subte_logo.png", use_container_width=True)
-        except Exception:
-            # Esto es un "salvavidas" por si el nombre de la imagen está mal escrito, para que no se caiga la web
-            st.markdown("<h3 style='color: white;'>Subte BA</h3>", unsafe_allow_html=True)
+        # 1. Creamos 3 columnas invisibles para centrar la imagen (1, 2, 1 son las proporciones)
+        col_izq, col_centro, col_der = st.columns([1, 2, 1])
+        
+        with col_centro:
+            try:
+                # ACÁ ABAJO: Podés cambiar el '120' por un número más grande o más chico para ajustar el tamaño exacto
+                st.image("logo_subte.png", width=120)
+            except Exception:
+                st.markdown("<h3 style='color: white; text-align: center;'>BA Subte</h3>", unsafe_allow_html=True)
 
+        # 2. Agregamos 'text-align: center;' para alinear el texto perfectamente debajo del logo
         st.markdown("""
-        <div style='padding: 0px 0 20px 0;'>
+        <div style='padding: 5px 0 20px 0; text-align: center;'>
             <div style='font-size: 0.75rem; color: #8B949E;
                         font-family: IBM Plex Mono; letter-spacing:0.08em;'>
                 TABLERO OPERATIVO
