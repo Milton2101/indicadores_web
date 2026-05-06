@@ -235,7 +235,7 @@ CSS_PERSONALIZADO = f"""
 st.markdown(CSS_PERSONALIZADO, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────────────────────────────────────
-#  CONEXIÓN A PYTHON
+#  CONEXIÓN A POSTGRES
 # ─────────────────────────────────────────────────────────────────────────────
 
 @st.cache_data(ttl=300)  # La caché dura 5 minutos (300 segundos). Así no saturamos la base.
@@ -272,193 +272,23 @@ def get_postgres_data():
             conn
         )
         
+        df_frecuencia = pd.read_sql_query(
+            "SELECT * FROM doo_gco_cisyat.vw_frecuencia_tiempo_real;",
+            conn
+        )
+        
         conn.close()
         
         return {
             "diario": df_diario,
             "semanal": df_semanal,
-            "mensual": df_mensual
+            "mensual": df_mensual,
+            "frecuencia": df_frecuencia
         }
         
     except Exception as e:
         st.error(f"Error al conectar a la base de datos: {e}")
-        return {"diario": pd.DataFrame(), "semanal": pd.DataFrame(), "mensual": pd.DataFrame()}
-
-# ─────────────────────────────────────────────────────────────────────────────
-#  GENERACIÓN DE DATOS MOCK
-# ─────────────────────────────────────────────────────────────────────────────
-
-# @st.cache_data(ttl=300)
-# def generate_mock_data():
-#     """
-#     Genera DataFrames con datos simulados coherentes para las 3 vistas
-#     del modelo de datos del Subte de Buenos Aires.
-
-#     Retorna un diccionario con tres claves:
-#       - 'diario':   vw_cumplimiento_servicio_tiempo_real
-#       - 'semanal':  mvw_cumplimiento_semanal
-#       - 'mensual':  mvw_cumplimiento_mensual
-#     """
-#     rng = np.random.default_rng(seed=42)
-#     lineas   = list(COLORES_LINEAS.keys())
-#     sentidos = ["Asc", "Desc"]
-#     horas    = list(range(5, 24))   # El subte opera de 05:00 a 23:00
-
-#     # ── Parámetros base por línea (intervalo programado típico en segundos) ──
-#     params_linea = {
-#         "A": {"ip": 240, "vol_factor": 1.0},
-#         "B": {"ip": 210, "vol_factor": 1.3},
-#         "C": {"ip": 180, "vol_factor": 0.8},
-#         "D": {"ip": 195, "vol_factor": 1.1},
-#         "E": {"ip": 300, "vol_factor": 0.6},
-#         "H": {"ip": 270, "vol_factor": 0.7},
-#         "PreMetro": {"ip": 420, "vol_factor": 0.3},
-#     }
-
-#     # ── Perfil de frecuencia por hora (factor multiplicador del intervalo) ──
-#     perfil_hora = {
-#         5: 2.0,  6: 1.4,  7: 0.8,  8: 0.6,  9: 0.7,
-#         10: 0.9, 11: 1.0, 12: 1.0, 13: 0.9, 14: 0.9,
-#         15: 0.9, 16: 0.8, 17: 0.7, 18: 0.6, 19: 0.7,
-#         20: 0.8, 21: 0.9, 22: 1.1, 23: 1.5,
-#     }
-
-#     def _cumplimiento_hora(hora):
-#         """Simula que las horas pico tienen menor cumplimiento."""
-#         base = 0.92
-#         if hora in [7, 8, 17, 18]:
-#             return max(0.70, base - rng.uniform(0.05, 0.20))
-#         return min(0.99, base + rng.uniform(-0.04, 0.04))
-
-#     # ═══════════════════════════════════════════════════════
-#     #  VISTA DIARIA  (últimas 30 fechas disponibles)
-#     # ═══════════════════════════════════════════════════════
-#     hoy   = date.today()
-#     rows_d = []
-#     for dias_atras in range(29, -1, -1):
-#         fecha = hoy - timedelta(days=dias_atras)
-#         for linea in lineas:
-#             p = params_linea[linea]
-#             for sentido in sentidos:
-#                 for hora in horas:
-#                     ip_base    = p["ip"] * perfil_hora.get(hora, 1.0)
-#                     factor_vol = p["vol_factor"]
-#                     cumpl      = _cumplimiento_hora(hora)
-#                     prog       = int((3600 / ip_base) * factor_vol)
-#                     efec       = max(1, int(prog * cumpl * rng.uniform(0.97, 1.0)))
-#                     ie_sec     = ip_base * (1 / cumpl) * rng.uniform(0.95, 1.10)
-#                     regularidad = max(0.50, min(0.99,
-#                                    1.0 - abs(ie_sec - ip_base) / ip_base
-#                                    + rng.uniform(-0.05, 0.05)))
-#                     rows_d.append({
-#                         "fecha":                     fecha,
-#                         "linea":                     linea,
-#                         "sentido":                   sentido,
-#                         "hora_solo":                 hora,
-#                         "trenes_programados":        max(1, int(prog * 0.6)),
-#                         "trenes_en_servicio":        max(1, int(efec * 0.6)),
-#                         "despachos_programados":     prog,
-#                         "despachos_efectuados":      efec,
-#                         "intervalo_medio_e_sec":     round(ie_sec, 0),
-#                         "intervalo_promedio_programado": round(ip_base, 0),
-#                         "indice_regularidad":        round(regularidad, 4),
-#                         "cumplimiento_servicio":     round(cumpl * rng.uniform(0.98, 1.0), 4),
-#                     })
-#     df_diario = pd.DataFrame(rows_d)
-
-#     # ═══════════════════════════════════════════════════════
-#     #  VISTA SEMANAL  (últimas 12 semanas ISO)
-#     # ═══════════════════════════════════════════════════════
-#     tipos_dia = ["Habil", "Sabado", "Domingo"]
-#     rows_s    = []
-#     año_actual = hoy.year
-
-#     for sem_offset in range(11, -1, -1):
-#         # Calcular la semana ISO correspondiente
-#         fecha_ref   = hoy - timedelta(weeks=sem_offset)
-#         año_iso, num_sem, _ = fecha_ref.isocalendar()
-#         año_semana  = f"{año_iso}-{num_sem:02d}"
-#         mes_ref     = fecha_ref.strftime("%Y-%m")
-
-#         for td in tipos_dia:
-#             for linea in lineas:
-#                 p = params_linea[linea]
-#                 for sentido in sentidos:
-#                     for hora in horas:
-#                         ip_base = p["ip"] * perfil_hora.get(hora, 1.0)
-#                         # Domingos: menor servicio, mayor intervalo
-#                         if td == "Domingo":
-#                             ip_base *= 1.6
-#                         elif td == "Sabado":
-#                             ip_base *= 1.2
-#                         cumpl       = _cumplimiento_hora(hora)
-#                         prog        = int((3600 / ip_base) * p["vol_factor"])
-#                         efec        = max(1, int(prog * cumpl * rng.uniform(0.97, 1.0)))
-#                         ie_sec      = ip_base * (1 / cumpl) * rng.uniform(0.95, 1.10)
-#                         desvio      = abs(ie_sec - ip_base) * rng.uniform(0.9, 1.1)
-#                         regularidad = max(0.50, min(0.99,
-#                                        1.0 - desvio / ip_base + rng.uniform(-0.04, 0.04)))
-#                         rows_s.append({
-#                             "año_semana":                  año_semana,
-#                             "mes_referencia":              mes_ref,
-#                             "tipo_dia":                    td,
-#                             "linea":                       linea,
-#                             "sentido":                     sentido,
-#                             "hora_solo":                   hora,
-#                             "despachos_programados":       prog,
-#                             "despachos_efectuados":        efec,
-#                             "intervalo_medio_e_sec":       round(ie_sec, 0),
-#                             "intervalo_promedio_programado": round(ip_base, 0),
-#                             "desvio_medio":                round(desvio, 0),
-#                             "indice_regularidad":          round(regularidad, 4),
-#                             "cumplimiento_servicio":       round(cumpl * rng.uniform(0.98, 1.0), 4),
-#                         })
-#     df_semanal = pd.DataFrame(rows_s)
-
-#     # ═══════════════════════════════════════════════════════
-#     #  VISTA MENSUAL  (últimos 6 meses)
-#     # ═══════════════════════════════════════════════════════
-#     rows_m = []
-#     for mes_offset in range(5, -1, -1):
-#         año  = hoy.year
-#         mes  = hoy.month - mes_offset
-#         while mes <= 0:
-#             mes  += 12
-#             año  -= 1
-#         año_mes = f"{año}-{mes:02d}"
-
-#         for td in tipos_dia:
-#             for linea in lineas:
-#                 p = params_linea[linea]
-#                 for sentido in sentidos:
-#                     for hora in horas:
-#                         ip_base = p["ip"] * perfil_hora.get(hora, 1.0)
-#                         if td == "Domingo": ip_base *= 1.6
-#                         elif td == "Sabado": ip_base *= 1.2
-#                         cumpl   = _cumplimiento_hora(hora)
-#                         prog    = int((3600 / ip_base) * p["vol_factor"])
-#                         efec    = max(1, int(prog * cumpl * rng.uniform(0.97, 1.0)))
-#                         ie_sec  = ip_base * (1 / cumpl) * rng.uniform(0.95, 1.10)
-#                         desvio  = abs(ie_sec - ip_base) * rng.uniform(0.9, 1.1)
-#                         regularidad = max(0.50, min(0.99,
-#                                        1.0 - desvio / ip_base + rng.uniform(-0.04, 0.04)))
-#                         rows_m.append({
-#                             "año_mes":                     año_mes,
-#                             "tipo_dia":                    td,
-#                             "linea":                       linea,
-#                             "sentido":                     sentido,
-#                             "hora_solo":                   hora,
-#                             "despachos_programados":       prog,
-#                             "despachos_efectuados":        efec,
-#                             "intervalo_medio_e_sec":       round(ie_sec, 0),
-#                             "intervalo_promedio_programado": round(ip_base, 0),
-#                             "desvio_medio":                round(desvio, 0),
-#                             "indice_regularidad":          round(regularidad, 4),
-#                             "cumplimiento_servicio":       round(cumpl * rng.uniform(0.98, 1.0), 4),
-#                         })
-#     df_mensual = pd.DataFrame(rows_m)
-
-#     return {"diario": df_diario, "semanal": df_semanal, "mensual": df_mensual}
+        return {"diario": pd.DataFrame(), "semanal": pd.DataFrame(), "mensual": pd.DataFrame(), "frecuencia": pd.DataFrame()}
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -814,7 +644,7 @@ def render_sidebar(datos: dict) -> dict:
         # ── Selector de Vista ──
         vista = st.radio(
             "VISTA",
-            options=["Diario / Tiempo Real", "Semanal", "Mensual"],
+            options=["Diario / Tiempo Real", "Semanal", "Mensual", "Detalle de Frecuencias"],
             index=0,
         )
 
@@ -841,7 +671,7 @@ def render_sidebar(datos: dict) -> dict:
         semana_sel   = None
         mes_sel      = None
 
-        if vista == "Diario / Tiempo Real":
+        if vista == "Diario / Tiempo Real" or vista == "Detalle de Frecuencias":
             df_d   = datos["diario"]
             fechas = sorted(df_d["fecha"].unique(), reverse=True)
             fecha_sel = st.selectbox(
@@ -894,11 +724,8 @@ def render_sidebar(datos: dict) -> dict:
         st.markdown(f"""
         <div style='font-size: 0.70rem; color: {COLOR_TEXTO_SEC};
                     font-family: IBM Plex Mono; line-height:1.6;'>
-            ⚠ Modo DEMO<br>
-            Datos simulados con<br>
-            coherencia operativa.<br>
-            Conectar a PostgreSQL<br>
-            para datos reales.
+            Datos reales<br>
+            Conectado a la base de datos<br>
         </div>
         """, unsafe_allow_html=True)
 
@@ -1153,6 +980,93 @@ def render_tabla_resumen(df: pd.DataFrame, filtros: dict):
         },
     )
 
+# -------------------------------------------------------------------------
+# NUEVA FUNCIÓN: RENDERIZAR TIRAS DE INTERVALOS (FRECUENCIAS)
+# -------------------------------------------------------------------------
+def render_detalle_frecuencia(df, filtros):
+    st.markdown(f'<div class="seccion-titulo">Tira de Intervalos Individuales - {filtros["linea"]} ({filtros["sentido"]})</div>', unsafe_allow_html=True)
+    
+    if df.empty:
+        st.info("No hay datos de despachos para los filtros y fecha seleccionados.")
+        return
+
+    # Ordenar la tabla cronológicamente
+    df = df.sort_values(by=["hora_solo", "turno_en_la_hora"])
+    
+    # ── 1. Mini KPIs de la Tira ──
+    col1, col2, col3, col4 = st.columns(4)
+    
+    despachos_prog = df["hora_programada"].count()
+    despachos_reales = df["hora_real"].count()
+    
+    int_prom_prog = df["intervalo_segundos_franja_p"].mean() if "intervalo_segundos_franja_p" in df else np.nan
+    int_prom_real = df["intervalo_segundos_franja_e"].mean() if "intervalo_segundos_franja_e" in df else np.nan
+    
+    col1.metric("Despachos Programados", f"{despachos_prog}")
+    col2.metric("Despachos Reales", f"{despachos_reales}")
+    
+    if pd.notna(int_prom_prog) and int_prom_prog > 0:
+        m, s = divmod(int_prom_prog, 60)
+        col3.metric("Intervalo Prom. Programado", f"{int(m):02d}:{int(s):02d}")
+    else:
+        col3.metric("Intervalo Prom. Programado", "-")
+
+    if pd.notna(int_prom_real) and int_prom_real > 0:
+        m, s = divmod(int_prom_real, 60)
+        delta = int_prom_real - int_prom_prog if pd.notna(int_prom_prog) else 0
+        delta_str = f"{int(delta)} seg" if delta != 0 else None
+        col4.metric("Intervalo Prom. Real", f"{int(m):02d}:{int(s):02d}", delta_str, delta_color="inverse")
+    else:
+        col4.metric("Intervalo Prom. Real", "-")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ── 2. Gráfico de Tira de Intervalos (Fluctuación) ──
+    fig = go.Figure()
+    
+    if "intervalo_segundos_franja_p" in df and "hora_programada" in df:
+        fig.add_trace(go.Scatter(
+            x=df["hora_programada"].astype(str),
+            y=df["intervalo_segundos_franja_p"] / 60,
+            mode='lines+markers', name='Prog. (Minutos)',
+            line=dict(color='#A0AAB2', width=2, dash='dash'),
+            marker=dict(size=6, symbol='circle')
+        ))
+        
+    if "intervalo_segundos_franja_e" in df and "hora_real" in df:
+        fig.add_trace(go.Scatter(
+            x=df["hora_real"].astype(str),
+            y=df["intervalo_segundos_franja_e"] / 60,
+            mode='lines+markers', name='Real (Minutos)',
+            line=dict(color='#0078D7', width=3),
+            marker=dict(size=8, symbol='diamond')
+        ))
+        
+    fig.update_layout(
+        title="Evolución del Intervalo entre Trenes (Tira de Despachos)",
+        xaxis_title="Hora de Despacho", yaxis_title="Intervalo (Minutos)",
+        template="plotly_white", hovermode="x unified",
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # ── 3. Tabla de Datos Crudos ──
+    st.markdown("### 📋 Detalle de Despachos")
+    columnas_mostrar = {
+        "hora_solo": "Hora", "turno_en_la_hora": "Turno",
+        "formacion_programada": "Chapa Prog.", "hora_programada": "Hora Prog.",
+        "intervalo_franja_p": "Intervalo Prog.", "formacion_real": "Chapa Real",
+        "hora_real": "Hora Real", "intervalo_franja_e": "Intervalo Real",
+        "promedio_bloque": "Prom. del Bloque"
+    }
+    
+    cols_existentes = [c for c in columnas_mostrar.keys() if c in df.columns]
+    df_tabla = df[cols_existentes].copy()
+    df_tabla.rename(columns=columnas_mostrar, inplace=True)
+    
+    st.dataframe(df_tabla, use_container_width=True, hide_index=True)
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  PUNTO DE ENTRADA PRINCIPAL
@@ -1161,52 +1075,67 @@ def render_tabla_resumen(df: pd.DataFrame, filtros: dict):
 def main():
     """Función principal que orquesta el renderizado del dashboard."""
 
-    # 1. Cargar datos (mock o desde PostgreSQL)
-    # ── Para conectar a PostgreSQL, reemplazar esta función con:
-    #    from db import get_data_diario, get_data_semanal, get_data_mensual
-    #    datos = { "diario": get_data_diario(), ... }
+    # 1. Cargar datos
     datos = get_postgres_data()
 
     # 2. Renderizar barra lateral y obtener filtros
     filtros = render_sidebar(datos)
 
-    # 3. Aplicar filtros al dataset correspondiente
-    df_filtrado = aplicar_filtros(datos, filtros)
+    # 3. Lógica de renderizado principal (El IF/ELSE)
+    if filtros["vista"] == "Detalle de Frecuencias":
+        
+        # Obtenemos la tabla de frecuencias
+        df_freq = datos.get("frecuencia", pd.DataFrame()).copy()
+        
+        if not df_freq.empty:
+            # Para la tira de intervalos, es mejor ver UNA sola línea a la vez.
+            # Tomamos la primera que el usuario haya seleccionado.
+            linea_seleccionada = filtros["lineas"][0] if filtros["lineas"] else "A"
+            df_freq = df_freq[df_freq["linea"] == linea_seleccionada]
+            
+            if filtros["sentido"] != "Ambos":
+                df_freq = df_freq[df_freq["sentido"] == filtros["sentido"]]
+                
+            # Si en el menú lateral hay una fecha seleccionada, filtramos la tabla
+            if filtros.get("fecha"):
+                df_freq = df_freq[df_freq["fecha"] == filtros["fecha"]]
 
-    # 4. Renderizar contenido principal
-    render_encabezado(filtros)
+        # Creamos un filtro modificado solo para pasarle a la función gráfica el nombre de la línea
+        filtros_detalle = filtros.copy()
+        filtros_detalle["linea"] = linea_seleccionada if filtros["lineas"] else "A"
+        
+        # Dibujamos la nueva vista
+        render_detalle_frecuencia(df_freq, filtros_detalle)
 
-    # ── Panel KPI ──
-    st.markdown('<div class="seccion-titulo">Indicadores Clave de Desempeño (KPI)</div>',
-                unsafe_allow_html=True)
-    render_kpis(df_filtrado)
+    else:
+        # --- RENDERIZADO CLÁSICO (Diario / Semanal / Mensual) ---
+        
+        # Aplicamos los filtros globales a las vistas clásicas
+        df_filtrado = aplicar_filtros(datos, filtros)
+        
+        render_encabezado(filtros)
 
-    st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown('<div class="seccion-titulo">Indicadores Clave de Desempeño (KPI)</div>', unsafe_allow_html=True)
+        render_kpis(df_filtrado)
 
-    # ── Gráficos principales ──
-    render_graficos_principales(df_filtrado, filtros)
+        st.markdown("<br>", unsafe_allow_html=True)
+        render_graficos_principales(df_filtrado, filtros)
 
-    st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
+        render_heatmap(df_filtrado)
 
-    # ── Mapa de calor (siempre tiene hora_solo disponible) ──
-    render_heatmap(df_filtrado)
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # ── Tabla de resumen ──
-    render_tabla_resumen(df_filtrado, filtros)
+        st.markdown("<br>", unsafe_allow_html=True)
+        render_tabla_resumen(df_filtrado, filtros)
 
     # ── Pie de página ──
     st.markdown(f"""
     <div style='text-align:center; padding: 32px 0 8px 0;
                 font-family: IBM Plex Mono, monospace;
-                font-size: 0.70rem; color: {COLOR_TEXTO_SEC};'>
+                font-size: 0.70rem; color: #8B949E;'>
         Subte Buenos Aires · Tablero Operativo v1.0 &nbsp;|&nbsp;
-        Datos: {date.today().strftime('%d/%m/%Y')} &nbsp;|&nbsp;
-        DEMO — Sin conexión a base de datos
+        Datos: {date.today().strftime('%d/%m/%Y')}
     </div>
     """, unsafe_allow_html=True)
-
-
+    
 if __name__ == "__main__":
     main()
