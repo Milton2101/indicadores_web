@@ -652,18 +652,30 @@ def render_sidebar(datos: dict) -> dict:
 
         # ── Filtro de Línea ──
         todas_lineas = sorted(COLORES_LINEAS.keys())
-        lineas_sel   = st.multiselect(
-            "LÍNEA",
-            options=todas_lineas,
-            default=todas_lineas,
-            placeholder="Todas las líneas",
-        )
-        if not lineas_sel:
-            lineas_sel = todas_lineas
+        
+        if vista == "Detalle de Frecuencias":
+            # Para la tira de frecuencias, forzamos a que elija solo UNA línea a la vez
+            linea_sel = st.selectbox("LÍNEA", options=todas_lineas, index=0)
+            lineas_sel = [linea_sel]  # Lo metemos en una lista para no romper el resto del código
+        else:
+            # Selección múltiple clásica para los resúmenes Diario/Semanal/Mensual
+            lineas_sel = st.multiselect(
+                "LÍNEA",
+                options=todas_lineas,
+                default=todas_lineas,
+                placeholder="Todas las líneas",
+            )
+            if not lineas_sel:
+                lineas_sel = todas_lineas
 
         # ── Filtro de Sentido ──
-        sentido_opt  = ["Ambos", "Asc", "Desc"]
-        sentido_sel  = st.selectbox("SENTIDO", options=sentido_opt, index=0)
+        if vista == "Detalle de Frecuencias":
+            # Quitamos "Ambos" para no cruzar trenes de ida y vuelta en la misma línea del gráfico
+            sentido_opt = ["Asc", "Desc"]
+        else:
+            sentido_opt = ["Ambos", "Asc", "Desc"]
+            
+        sentido_sel = st.selectbox("SENTIDO", options=sentido_opt, index=0)
 
         # ── Filtros según la vista seleccionada ──
         tipo_dia_sel = None
