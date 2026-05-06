@@ -626,13 +626,17 @@ def render_sidebar(datos: dict) -> dict:
     Devuelve un dict con los valores seleccionados por el usuario.
     """
     with st.sidebar:
+        # --- NUEVO BLOQUE DEL LOGO ---
+        try:
+            # ACÁ ABAJO: Cambiá "logo_subte.png" por el nombre exacto de tu imagen
+            st.image("Subte_logo.png", use_container_width=True)
+        except Exception:
+            # Esto es un "salvavidas" por si el nombre de la imagen está mal escrito, para que no se caiga la web
+            st.markdown("<h3 style='color: white;'>Subte BA</h3>", unsafe_allow_html=True)
+
         st.markdown("""
-        <div style='padding: 8px 0 20px 0;'>
-            <div style='font-family: IBM Plex Mono, monospace; font-size: 1.1rem;
-                        font-weight: 600; color: #E6EDF3; letter-spacing:0.05em;'>
-                🚇 Subte BA
-            </div>
-            <div style='font-size: 0.75rem; color: #8B949E; margin-top:4px;
+        <div style='padding: 0px 0 20px 0;'>
+            <div style='font-size: 0.75rem; color: #8B949E;
                         font-family: IBM Plex Mono; letter-spacing:0.08em;'>
                 TABLERO OPERATIVO
             </div>
