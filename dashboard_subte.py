@@ -1126,6 +1126,12 @@ def render_detalle_frecuencia(df, filtros):
     if "Intervalo Real" in df_tabla.columns:
         df_tabla["Intervalo Real"] = df_tabla["Intervalo Real"].apply(formatear_intervalo)
     
+    if "Intervalo Prog. Franja" in df_tabla.columns:
+        df_tabla["Intervalo Prog. Franja"] = df_tabla["Intervalo Prog. Franja"].apply(formatear_intervalo)
+    
+    if "Intervalo Real Franja" in df_tabla.columns:
+        df_tabla["Intervalo Real Franja"] = df_tabla["Intervalo Real Franja"].apply(formatear_intervalo)
+    
     st.dataframe(df_tabla, use_container_width=True, hide_index=True)
 
 
