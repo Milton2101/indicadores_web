@@ -53,7 +53,7 @@ COLORES_LINEAS = {
     "D": "#5ABF71",   # Verde
     "E": "#9B5EA4",   # Violeta
     "H": "#F5A623",   # Naranja
-    "PreMetro": "#8C7B6E",  # Marrón
+    "P": "#8C7B6E",  # Marrón
 }
 
 # Tema del dashboard: control room industrial con fondo oscuro
@@ -521,7 +521,7 @@ def grafico_mapa_calor_linea(df: pd.DataFrame) -> go.Figure:
     pivot = agg.pivot(index="linea", columns="hora_solo", values="cumpl")
 
     # Orden de líneas para el heatmap
-    orden_lineas = [l for l in ["A", "B", "C", "D", "E", "H", "PreMetro"]
+    orden_lineas = [l for l in ["A", "B", "C", "D", "E", "H", "P"]
                     if l in pivot.index]
     pivot = pivot.loc[orden_lineas]
 
@@ -632,7 +632,7 @@ def render_sidebar(datos: dict) -> dict:
             <style>
                 /* Quita el espacio en blanco superior de la barra lateral */
                 [data-testid="stSidebarUserContent"] {
-                    padding-top: 20px !important;
+                    padding-top: -20px !important;
                 }
                 /* Reduce el espacio entre elementos de la barra lateral */
                 [data-testid="stSidebar"] .stVerticalBlock {
@@ -652,7 +652,7 @@ def render_sidebar(datos: dict) -> dict:
 
         # --- 3. TEXTO CON MÁRGENES MÍNIMOS ---
         st.markdown("""
-        <div style='margin-top: -10px; padding: 0px 0 10px 0; text-align: center;'>
+        <div style='margin-top: 10px; padding: 0px 0 10px 0; text-align: center;'>
             <div style='font-size: 0.70rem; color: #8B949E;
                         font-family: IBM Plex Mono; letter-spacing:0.08em; line-height: 1;'>
                 TABLERO OPERATIVO
