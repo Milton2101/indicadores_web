@@ -1094,7 +1094,7 @@ def render_detalle_frecuencia(df, filtros):
     st.markdown("### 📋 Detalle de Despachos")
     columnas_mostrar = {
         "linea":"linea","sentido": "Sentido","hora_solo": "Hora", "tipo_viaje": "Tipo de Viaje", "turno_en_la_hora": "Turno",
-        "formacion_programada": "Chapa Prog.", "hora_programada": "Hora Prog.", "intervalo_programado":"Intervalo Prog.",
+        "formacion_programada": "Chapa Prog.", "hora_programada": "Hora Prog.", "intervalo_programado":"Intervalo Prog."
         , "formacion_real": "Chapa Real", "hora_real": "Hora Real", "intervalo":"Intervalo Real",
         "promedio_bloque": "Prom. del Bloque"
     }
