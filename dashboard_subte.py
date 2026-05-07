@@ -1057,22 +1057,22 @@ def render_detalle_frecuencia(df, filtros):
     # ── 2. Gráfico de Tira de Intervalos (Fluctuación) ──
     fig = go.Figure()
     
-    if "intervalo_segundos_franja_p" in df and "hora_programada" in df:
-        df_prog = df.dropna(subset=["hora_programada", "intervalo_segundos_franja_p"]).sort_values("hora_programada")
+    if "intervalo_segundos_p" in df and "hora_programada" in df:
+        df_prog = df.dropna(subset=["hora_programada", "intervalo_segundos_p"]).sort_values("hora_programada")
         fig.add_trace(go.Scatter(
             x=pd.to_datetime(df_prog["hora_programada"].astype(str), format='%H:%M:%S', errors='coerce'),
-            y=df_prog["intervalo_segundos_franja_p"] / 60,
+            y=df_prog["intervalo_segundos_p"] / 60,
             mode='lines+markers', name='Prog. (Minutos)',
             line=dict(color='#A0AAB2', width=2, dash='dash'),
             marker=dict(size=6, symbol='circle'),
             hovertemplate="Hora Prog: %{x|%H:%M:%S}<br>Intervalo: %{y:.1f} min<extra></extra>"
         ))
         
-    if "intervalo_segundos_franja_e" in df and "hora_real" in df:
-        df_real = df.dropna(subset=["hora_real", "intervalo_segundos_franja_e"]).sort_values("hora_real")
+    if "intervalo_segundos_e" in df and "hora_real" in df:
+        df_real = df.dropna(subset=["hora_real", "intervalo_segundos_e"]).sort_values("hora_real")
         fig.add_trace(go.Scatter(
             x=pd.to_datetime(df_real["hora_real"].astype(str), format='%H:%M:%S', errors='coerce'),
-            y=df_real["intervalo_segundos_franja_e"] / 60,
+            y=df_real["intervalo_segundos_e"] / 60,
             mode='lines+markers', name='Real (Minutos)',
             line=dict(color='#0078D7', width=3),
             marker=dict(size=8, symbol='diamond'),
