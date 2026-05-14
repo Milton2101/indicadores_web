@@ -36,7 +36,7 @@ import psycopg2
 
 st.set_page_config(
     page_title="Subte BA · Tablero Operativo",
-    page_icon="🚇",
+    page_icon="Subte_logo.png",
     layout="wide",
     initial_sidebar_state="expanded",
 )
