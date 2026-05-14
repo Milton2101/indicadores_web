@@ -1,0 +1,24 @@
+from PIL import Image
+import os
+
+# Definimos la carpeta base usando una 'r' al principio
+base_path = r"C:\Users\mferrari\OneDrive - SBASE\Documentos\indicadores_web"
+
+# Unimos la carpeta con el nombre del archivo de forma segura
+ruta_entrada = os.path.join(base_path, "Subte_logo.png")
+ruta_salida = os.path.join(base_path, "Subte_logo.ico")
+
+def convertir_a_ico(ruta_entrada, ruta_salida):
+    # Abrimos la imagen original (.png o .jpg)
+    img = Image.open(ruta_entrada)
+    
+    # El formato ICO permite guardar varios tamaños en un solo archivo
+    # Definimos los tamaños estándar para navegadores (32x32 y 64x64)
+    icon_sizes = [(32, 32), (64, 64)]
+    
+    # Guardamos el archivo con formato 'ICO'
+    img.save(ruta_salida, format='ICO', sizes=icon_sizes)
+    print(f"¡Éxito! Icono creado en: {ruta_salida}")
+
+# Ejecutamos la función con tus archivos
+convertir_a_ico(ruta_entrada, ruta_salida)
