@@ -4,19 +4,18 @@ import psycopg2
 def extraer_datos_base():
     try:
         conn = psycopg2.connect(
-            host="SBPSSQL",
-            port="5050",
+            host="192.168.8.152",
+            port="5432",
             dbname="sbase_gco",
-            user="sbase_gco_root",
-            password="U9s@rF3#vZq1xL2!"
+            user="postgres",
+            password="simon"
         )
         print("✅ ¡Conexión exitosa con la base de datos!\n")
         # Consulta 1: Vista Diaria
         print("📥 Descargando vista diaria/tiempo real..."
               )
         df_diario = pd.read_sql_query(
-            "SELECT * FROM doo_gco_cisyat.vw_cumplimiento_servicio_tiempo_real LIMIT 100;",
-            conn)
+            "WITH TablaInicial AS (SELECT m.fecha, m.linea, m.sentido, m.hora_solo, m.turno_en_la_hora, m.hora_programada, m.hora_real, m.intervalo_p, m.intervalo_e,m.intervalo_segundos_p, m.intervalo_segundos_e FROM doo_gco_cisyat.mvw_intervalos_ibdo_consolidado m WHERE fecha BETWEEN CURRENT_DATE - 3 AND CURRENT_DATE AND linea = 'A' AND sentido = 'Asc' AND (hora_solo = 8 OR hora_solo = 9)), TablaPromedio AS ( SELECT(AVG(intervalo_segundos_p))::numeric(10,0) AS promedio_p,(AVG(intervalo_segundos_e))::numeric(10,0) AS promedio_eFROM TablaInicial)SELECT promedio_e * '1 second'::interval FROM TablaPromedio;", conn)
         print("⏱️  Vista diaria lista.")
         # print(df_diario)
         conn.close()
