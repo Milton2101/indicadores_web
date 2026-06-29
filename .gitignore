@@ -1,5 +1,6 @@
 # Entorno virtual (muy pesado)
 venv/
+.venv/
 
 # Configuración y secretos (seguridad)
 .streamlit/
